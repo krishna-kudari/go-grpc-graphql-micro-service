@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/krishna-kudari/go-grpc-graphql-micro-service/account/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"github.com/krishna-kudari/go-grpc-graphql-micro-service/account/pb"
 )
 
 type grpcServer struct {

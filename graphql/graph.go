@@ -1,5 +1,11 @@
 package main
 
+import (
+	"github.com/krishna-kudari/go-grpc-graphql-micro-service/account"
+	"github.com/krishna-kudari/go-grpc-graphql-micro-service/catalog"
+	"github.com/krishna-kudari/go-grpc-graphql-micro-service/order"
+	"github.com/99designs/gqlgen/graphql"
+)
 
 type Server struct {
 	accountClient *account.Client
