@@ -89,6 +89,25 @@ func (c *Client) GetProducts(ctx context.Context, skip uint64, take uint64) ([]P
 	return products, nil
 }
 
+func (c *Client) GetProductsByIDs(ctx context.Context, ids []string) ([]Product, error) {
+	res, err := c.service.GetProductsByIDs(ctx, &pb.GetProductsByIDsRequest{
+		Ids: ids,
+	})
+	if err != nil {
+		return nil, err
+	}
+	products := []Product{}
+	for _, p := range res.Products {
+		products = append(products, Product{
+			Name:        p.Name,
+			ID:          p.Id,
+			Description: p.Description,
+			Price:       float64(p.Price),
+		})
+	}
+	return products, nil
+}
+
 func (c *Client) SearchProducts(ctx context.Context, query string, skip uint64, take uint64) ([]Product, error) {
 	res, err := c.service.SearchProducts(ctx, &pb.SearchProductsRequest{
 		Query: query,

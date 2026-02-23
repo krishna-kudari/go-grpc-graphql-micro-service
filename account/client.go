@@ -26,7 +26,7 @@ func (c *Client) Close()  {
 	c.conn.Close()
 }
 
-func (c *Client) PostAccount(ctx context.Context, name string) (*Account, error) {
+func (c *Client) CreateAccount(ctx context.Context, name string) (*Account, error) {
 	r, err := c.service.PostAccount(
 		ctx,
 		&pb.PostAccountRequest{Name: name},
@@ -40,7 +40,7 @@ func (c *Client) PostAccount(ctx context.Context, name string) (*Account, error)
 	}, nil
 }
 
-func (c *Client) GetAccount(ctx context.Context, id string) (*Account, error) {
+func (c *Client) GetAccountInfo(ctx context.Context, id string) (*Account, error) {
 	r, err := c.service.GetAccount(
 		ctx,
 		&pb.GetAccountRequest{Id: id},

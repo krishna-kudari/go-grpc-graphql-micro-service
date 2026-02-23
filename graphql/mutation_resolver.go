@@ -8,14 +8,14 @@ type mutationResolver struct{
 	server *Server
 }
 
-func (r *mutationResolver) createAccount(ctx context.Context, in AccountInput) (*Account, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, in AccountInput) (*Account, error) {
 	return nil, nil
 }
 
-func (r *mutationResolver) createProduct(ctx context.Context, in ProductInput) (*Product, error) {
+func (r *mutationResolver) CreateProduct(ctx context.Context, in ProductInput) (*Product, error) {
 	return nil, nil
 }
 
-func (r *mutationResolver) createOrder(ctx context.Context, in OrderInput) (*Order, error) {
+func (r *mutationResolver) CreateOrder(ctx context.Context, in OrderInput) (*Order, error) {
 	return nil, nil
 }
