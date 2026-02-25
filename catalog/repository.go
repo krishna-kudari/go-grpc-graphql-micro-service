@@ -15,7 +15,7 @@ var (
 )
 
 type Repository interface {
-	Close()
+	Close(ctx context.Context) error
 	PutProduct(ctx context.Context, p *Product) error
 	GetProductByID(ctx context.Context, id string) (*Product, error)
 	ListProducts(ctx context.Context, skip uint64, take uint64) ([]Product, error)
@@ -28,8 +28,12 @@ type elasticRepository struct {
 }
 
 // Close implements [Repository].
-func (e *elasticRepository) Close() {
-	panic("unimplemented")
+func (e *elasticRepository) Close(ctx context.Context) error {
+	err := e.client.Close(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetProductByID implements [Repository].
@@ -69,7 +73,7 @@ func (e *elasticRepository) ListProducts(ctx context.Context, skip uint64, take 
 		es.Search.WithIndex("catalog"),
 		es.Search.WithFrom(int(skip)),
 		es.Search.WithSize(int(take)),
-		es.Search.WithSort("id:asc"),
+		es.Search.WithSort("id.keyword:asc"),
 		es.Search.WithTrackTotalHits(true),
 	)
 	if err != nil {

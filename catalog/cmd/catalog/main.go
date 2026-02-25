@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -27,7 +28,7 @@ func main() {
 		}
 		return
 	})
-	defer repository.Close()
+	defer repository.Close(context.TODO())
 	log.Println("Listening on port 8080...")
 	service := catalog.NewService(repository)
 	log.Fatal(catalog.ListenGRPC(service, 8080))

@@ -26,21 +26,28 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 		}}, nil
 	}
 
+	// Default pagination when not provided
+	skip, take := uint64(0), uint64(100)
 	if pagination != nil {
-		res, err := r.server.accountClient.GetAccounts(ctx, uint64(*pagination.Skip), uint64(*pagination.Take))
-		if err != nil {
-			return nil, err
+		if pagination.Skip != nil {
+			skip = uint64(*pagination.Skip)
 		}
-		accounts := make([]*Account, len(res))
-		for i, account := range res {
-			accounts[i] = &Account{
-				ID: account.ID,
-				Name: account.Name,
-			}
+		if pagination.Take != nil && *pagination.Take > 0 {
+			take = uint64(*pagination.Take)
 		}
-		return accounts, nil
 	}
-	return nil, nil
+	res, err := r.server.accountClient.GetAccounts(ctx, skip, take)
+	if err != nil {
+		return nil, err
+	}
+	accounts := make([]*Account, len(res))
+	for i, account := range res {
+		accounts[i] = &Account{
+			ID:   account.ID,
+			Name: account.Name,
+		}
+	}
+	return accounts, nil
 }
 
 func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInput, query *string, id *string)([]*Product, error)  {
@@ -60,41 +67,56 @@ func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInpu
 		}},nil
 	}
 
-	if pagination != nil {
-		res, err := r.server.catalogClient.GetProducts(ctx, uint64(*pagination.Skip), uint64(*pagination.Take))
-		if err != nil {
-			return nil, err
-		}
-		products := make([]*Product, len(res))
-		for i, p := range res {
-			products[i] = &Product{
-				ID: p.ID,
-				Name: p.Name,
-				Price: p.Price,
-				Description: p.Description,
-			}
-		}
-		return products, nil
-	}
-
 	if query != nil {
-
-		res, err := r.server.catalogClient.SearchProducts(ctx, *query, uint64(*pagination.Skip), uint64(*pagination.Take))
+		skip, take := uint64(0), uint64(100)
+		if pagination != nil {
+			if pagination.Skip != nil {
+				skip = uint64(*pagination.Skip)
+			}
+			if pagination.Take != nil && *pagination.Take > 0 {
+				take = uint64(*pagination.Take)
+			}
+		}
+		res, err := r.server.catalogClient.SearchProducts(ctx, *query, skip, take)
 		if err != nil {
 			return nil, err
 		}
 		products := make([]*Product, len(res))
 		for i, p := range res {
 			products[i] = &Product{
-				ID: p.ID,
-				Name: p.Name,
-				Price: p.Price,
+				ID:          p.ID,
+				Name:        p.Name,
+				Price:       p.Price,
 				Description: p.Description,
 			}
 		}
 		return products, nil
 	}
-	return nil, nil
+
+	// Default pagination when not provided
+	skip, take := uint64(0), uint64(100)
+	if pagination != nil {
+		if pagination.Skip != nil {
+			skip = uint64(*pagination.Skip)
+		}
+		if pagination.Take != nil && *pagination.Take > 0 {
+			take = uint64(*pagination.Take)
+		}
+	}
+	res, err := r.server.catalogClient.GetProducts(ctx, skip, take)
+	if err != nil {
+		return nil, err
+	}
+	products := make([]*Product, len(res))
+	for i, p := range res {
+		products[i] = &Product{
+			ID:          p.ID,
+			Name:        p.Name,
+			Price:       p.Price,
+			Description: p.Description,
+		}
+	}
+	return products, nil
 }
 
 

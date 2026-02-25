@@ -16,7 +16,7 @@ type grpcServer struct {
 }
 
 func ListenGRPC(s Service, port int) error {
-	listener, err := net.Listen("tcp", fmt.Sprintf("%d", port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
