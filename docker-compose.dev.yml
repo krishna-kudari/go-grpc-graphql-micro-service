@@ -1,0 +1,54 @@
+services:
+# ----------------------------
+  # DATABASES
+  # ----------------------------
+  account_db:
+    environment:
+      POSTGRES_DB: dev_account_db
+      POSTGRES_USER: account_db_user
+      POSTGRES_PASSWORD: account
+
+  order_db:
+    environment:
+      POSTGRES_DB: dev_order_db
+      POSTGRES_USER: order_db_user
+      POSTGRES_PASSWORD: order
+
+  # ----------------------------
+  # MICROSERVICES
+  # ----------------------------
+  account:
+    build:
+      context: .
+      dockerfile: ./account/app.dockerfile
+      target: dev
+    volumes:
+      - ./account:/app
+    environment:
+      DATABASE_URL: postgres://account_db_user:account@account_db/dev_account_db?sslmode=disable
+
+  catalog:
+    build:
+      context: .
+      dockerfile: ./catalog/app.dockerfile
+      target: dev
+    volumes:
+      - ./catalog:/app
+
+  order:
+    build:
+      context: .
+      dockerfile: ./order/app.dockerfile
+      target: dev
+    volumes:
+      - ./order:/app
+    environment:
+      DATABASE_URL: postgres://order_db_user:order@order_db/dev_order_db?sslmode=disable
+
+  graphql:
+    build:
+      context: .
+      dockerfile: ./graphql/app.dockerfile
+      target: dev
+    volumes:
+      - ./graphql:/app

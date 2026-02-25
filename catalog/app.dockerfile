@@ -1,13 +1,35 @@
-FROM golang:1.13-alpine3.11 AS build
-RUN apk --no-cache add gcc g++ make ca-certificates
-WORKDIR /go/src/github.com/krishna-kudari/go-grpc-graphql-micro-service
-COPY go.mod go.sum ./
-COPY vendor vendor
-COPY account account
-RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/catalog
+# ---------- Base ----------
+FROM golang:1.26 AS base
 
-FROM alpine:3.11
-WORKDIR /usr/bin
-COPY --from=build /go/bin .
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+# ---------- Dev Stage ----------
+FROM base AS dev
+
+RUN go install github.com/air-verse/air@latest
+
+COPY . .
+
+CMD [ "air" ]
+
+# ---------- Prod Builder --------
+FROM base AS builder
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o app ./catalog/cmd/catalog;
+
+# ---------- Production Runtime ---------
+FROM gcr.io/distroless/static-debian12 AS prod
+
+WORKDIR /root/
+
+COPY --from=builder /app/app .
+
+USER nonroot:nonroot
+
 EXPOSE 8080
-CMD ["app"]
+
+CMD [ "./app" ]

@@ -1,0 +1,115 @@
+services:
+  # ----------------------------
+  # DATABASES
+  # ----------------------------
+  account_db:
+    build:
+      context: .
+      dockerfile: ./account/db.dockerfile
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: account_db_user
+      POSTGRES_PASSWORD: account
+    volumes:
+      - account_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U account_db_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  catalog_db:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.3
+    environment:
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 9200:9200
+
+  order_db:
+    build:
+      context: .
+      dockerfile: ./order/db.dockerfile
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: order_db_user
+      POSTGRES_PASSWORD: order
+    volumes:
+      - order_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_db_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ----------------------------
+  # MICROSERVICES
+  # ----------------------------
+  account:
+    build:
+      context: .
+      dockerfile: ./account/app.dockerfile
+      target: prod
+    environment:
+      DATABASE_URL: postgres://account_db_user:account@account_db/account_db?sslmode=disable
+    depends_on:
+      account_db:
+        condition: service_healthy
+    restart: on-failure
+
+  catalog:
+    build:
+      context: .
+      dockerfile: ./catalog/app.dockerfile
+      target: prod
+    depends_on:
+      catalog_db:
+        condition: service_healthy
+    environment:
+      ES_URL: http://catalog_db:9200
+    restart: on-failure
+
+  order:
+    build:
+      context: .
+      dockerfile: ./order/app.dockerfile
+      target: prod
+    depends_on:
+      order_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://order_db_user:order@order_db/order_db?sslmode=disable
+      ACCOUNT_SERVICE_URL: account:8080
+      CATALOG_SERVICE_URL: catalog:8080
+    restart: on-failure
+
+  graphql:
+    build:
+      context: .
+      dockerfile: ./graphql/app.dockerfile
+      target: prod
+    ports:
+      - 8000:8080
+    depends_on:
+      - account
+      - catalog
+      - order
+    environment:
+      ACCOUNT_SERVICE_URL: account:8080
+      CATALOG_SERVICE_URL: catalog:8080
+      ORDER_SERVICE_URL: order:8080
+    restart: on-failure
+
+volumes:
+  account_postgres_data:
+  order_postgres_data:
+
