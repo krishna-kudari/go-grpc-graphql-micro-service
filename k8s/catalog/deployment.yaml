@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+spec:
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      initContainers:
+      - name: wait-for-elasticsearch
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z catalog-db 9200; do echo waiting for catalog-db; sleep 2; done; echo elasticsearch ready']
+      containers:
+      - name: catalog
+        image: catalog:latest
+        imagePullPolicy: Never
+        env:
+        - name: ES_URL
+          value: http://catalog-db:9200
+        ports:
+        - containerPort: 8080

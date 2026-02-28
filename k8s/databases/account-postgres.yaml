@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-db
+  template:
+    metadata:
+      labels:
+        app: account-db
+    spec:
+      containers:
+      - name: postgres
+        image: account-db:latest
+        imagePullPolicy: Never
+        env:
+          - name: POSTGRES_DB
+            value: account_db
+          - name: POSTGRES_USER
+            value: account_db_user
+          - name: POSTGRES_PASSWORD
+            value: account
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-db
+spec:
+  selector:
+    app: account-db
+  ports:
+  - port: 5432

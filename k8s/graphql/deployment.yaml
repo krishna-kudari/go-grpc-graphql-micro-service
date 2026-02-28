@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graphql
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: graphql
+  template:
+    metadata:
+      labels:
+        app: graphql
+    spec:
+      containers:
+      - name: graphql
+        image: graphql:latest
+        imagePullPolicy: Never
+        env:
+        - name: ACCOUNT_SERVICE_URL
+          value: account:8080
+        - name: CATALOG_SERVICE_URL
+          value: catalog:8080
+        - name: ORDER_SERVICE_URL
+          value: order:8080
+        ports:
+        - containerPort: 8080

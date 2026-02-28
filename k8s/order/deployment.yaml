@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z order-db 5432; do echo waiting for order-db; sleep 2; done; echo db ready']
+      containers:
+      - name: order
+        image: order:latest
+        imagePullPolicy: Never
+        env:
+        - name: DATABASE_URL
+          value: postgres://order_db_user:order@order-db:5432/order_db?sslmode=disable
+        - name: ACCOUNT_SERVICE_URL
+          value: account:8080
+        - name: CATALOG_SERVICE_URL
+          value: catalog:8080
+        ports:
+        - containerPort: 8080
+
